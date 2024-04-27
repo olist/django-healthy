@@ -5,11 +5,11 @@ build-backend = "hatchling.build"
 [project]
 name = "django-healthy"
 dynamic = ["version"]
-description = ''
+description = "Simple health checking for django applications"
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
-keywords = []
+keywords = ["django"]
 authors = [
   { name = "Christian Hartung", email = "christian.hartung@olist.com" },
 ]
@@ -34,6 +34,29 @@ dependencies = [
 Documentation = "https://github.com/olist/django-healthy#readme"
 Issues = "https://github.com/olist/django-healthy/issues"
 Source = "https://github.com/olist/django-healthy"
+
+[tool.coverage.run]
+source_pkgs = ["healthy", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/healthy/__about__.py",
+]
+
+[tool.coverage.paths]
+healthy = ["src/healthy", "*/django-healthy/src/healthy"]
+tests = ["tests", "*/django-healthy/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "tests.settings"
+pythonpath = [".", "src"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/healthy"]
@@ -63,32 +86,23 @@ cov = [
 [[tool.hatch.envs.all.matrix]]
 python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
+[tool.hatch.envs.tests.overrides]
+matrix.django.dependencies = [
+    { value = "django>=4.2,<5.0", if = ["4.2"] },
+    { value = "django>=5.0,<5.1", if = ["5.0"] },
+]
+
+[[tool.hatch.envs.tests.matrix]]
+django = ["4.2"]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+[[tool.hatch.envs.tests.matrix]]
+django = ["5.0"]
+python = ["3.10", "3.11", "3.12"]
+
 [tool.hatch.envs.types]
 dependencies = [
   "mypy>=1.0.0",
 ]
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/healthy tests}"
-
-[tool.coverage.run]
-source_pkgs = ["healthy", "tests"]
-branch = true
-parallel = true
-omit = [
-  "src/healthy/__about__.py",
-]
-
-[tool.coverage.paths]
-healthy = ["src/healthy", "*/django-healthy/src/healthy"]
-tests = ["tests", "*/django-healthy/tests"]
-
-[tool.coverage.report]
-exclude_lines = [
-  "no cov",
-  "if __name__ == .__main__.:",
-  "if TYPE_CHECKING:",
-]
-
-[tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "tests.settings"
-pythonpath = [".", "src"]
