@@ -4,9 +4,16 @@
 from http import HTTPStatus
 
 from django.http import HttpRequest, HttpResponse
-from django.views.decorators.http import require_http_methods
+from django.views import View
 
 
-@require_http_methods(["GET"])
-async def ping(request: HttpRequest) -> HttpResponse:
-    return HttpResponse("Pong", status=HTTPStatus.OK)
+class PingView(View):
+    http_method_names = [
+        "get",
+        "head",
+        "options",
+        "trace",
+    ]
+
+    async def get(self, request: HttpRequest) -> HttpResponse:
+        return HttpResponse("Pong", status=HTTPStatus.OK)
