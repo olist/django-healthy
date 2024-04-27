@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
@@ -61,8 +61,11 @@ pythonpath = [".", "src"]
 [tool.hatch.build.targets.wheel]
 packages = ["src/healthy"]
 
+[tool.hatch.build.targets.sdist]
+exclude = ["/.devcontainer", "/.github"]
+
 [tool.hatch.version]
-path = "src/healthy/__about__.py"
+source = "vcs"
 
 [tool.hatch.envs.default]
 dependencies = [
