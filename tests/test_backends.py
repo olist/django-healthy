@@ -85,3 +85,30 @@ class TestLivenessHealthBackend:
 
         assert isinstance(got, backends.Health)
         assert got.status == backends.HealthStatus.UP
+
+
+@pytest.mark.asyncio
+class TestCacheHealthCheck:
+    async def test_with_working_cache(self):
+        backend = backends.CacheHealthBackend()
+
+        got = await backend.run_health_check()
+
+        assert isinstance(got, backends.Health)
+        assert got.status == backends.HealthStatus.UP
+
+    async def test_with_broken_cache(self):
+        backend = backends.CacheHealthBackend("broken")
+
+        got = await backend.run_health_check()
+
+        assert isinstance(got, backends.Health)
+        assert got.status == backends.HealthStatus.DOWN
+
+    async def test_with_invalid_value(self):
+        backend = backends.CacheHealthBackend("dummy")
+
+        got = await backend.run_health_check()
+
+        assert isinstance(got, backends.Health)
+        assert got.status == backends.HealthStatus.DOWN

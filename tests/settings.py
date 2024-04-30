@@ -55,6 +55,18 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    },
+    "dummy": {
+        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+    },
+    "broken": {
+        "BACKEND": "tests.cache.BrokenCache",
+    },
+}
+
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
@@ -64,3 +76,12 @@ USE_TZ = True
 STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+HEALTH_CHECK_BACKENDS = {
+    "default_cache": {
+        "BACKEND": "healthy.backends.CacheBackend",
+        "OPTIONS": {
+            "alias": "default",
+        },
+    }
+}

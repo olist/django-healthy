@@ -5,7 +5,9 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import overload
+from typing import Final, overload
+
+from django.core.cache import caches
 
 from .compat import Self, StrEnum, override
 
@@ -22,13 +24,11 @@ class Health:
 
     @overload
     @classmethod
-    def up(cls) -> Self:
-        ...
+    def up(cls) -> Self: ...
 
     @overload
     @classmethod
-    def up(cls, details: dict) -> Self:
-        ...
+    def up(cls, details: dict) -> Self: ...
 
     @classmethod
     def up(cls, details: dict | None = None) -> Self:
@@ -39,18 +39,15 @@ class Health:
 
     @overload
     @classmethod
-    def down(cls) -> Self:
-        ...
+    def down(cls) -> Self: ...
 
     @overload
     @classmethod
-    def down(cls, details: Exception) -> Self:
-        ...
+    def down(cls, details: Exception) -> Self: ...
 
     @overload
     @classmethod
-    def down(cls, details: dict) -> Self:
-        ...
+    def down(cls, details: dict) -> Self: ...
 
     @classmethod
     def down(cls, details: dict | Exception | None = None) -> Self:
@@ -79,4 +76,29 @@ class HealthBackend(ABC):
 class LivenessHealthBackend(HealthBackend):
     @override
     async def run_health_check(self) -> Health:
+        return Health.up()
+
+
+CACHE_VALUE: Final[str] = "healthy_test_value"
+
+
+class CacheHealthBackend(HealthBackend):
+    __slots__ = ("alias", "key")
+
+    def __init__(self, alias: str = "default", key: str = "healthy_test"):
+        self.alias = alias
+        self.key = key
+
+    async def run_health_check(self) -> Health:
+        cache = caches[self.alias]
+        given = CACHE_VALUE
+
+        try:
+            await cache.aset(self.key, given)
+            got = await cache.aget(self.key)
+            if got != given:
+                return Health.down({"message": "Got unexpected value."})
+        except Exception as exc:  # noqa: BLE001
+            return Health.down(exc)
+
         return Health.up()
