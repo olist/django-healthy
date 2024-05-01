@@ -31,6 +31,9 @@ jobs:
       - name: Setup Hatch
         run: pipx install hatch
 
+      - name: Run static analysis
+        run: hatch fmt --check
+
       - name: Run tests
         run: |
           hatch env run -e tests -i py=${{ matrix.python-version }} test
