@@ -1,15 +1,19 @@
 # SPDX-FileCopyrightText: 2024-present OLIST TINY TECNOLOGIA LTDA
 #
 # SPDX-License-Identifier: MIT
-from dataclasses import dataclass, field
-from abc import ABC, abstractmethod
-from typing import overload, Optional, Union
+from __future__ import annotations
 
-from .compat import Self, override, StrEnum
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from typing import overload
+
+from .compat import Self, StrEnum, override
+
 
 class HealthStatus(StrEnum):
     UP = "up"
     DOWN = "down"
+
 
 @dataclass
 class Health:
@@ -27,9 +31,9 @@ class Health:
         ...
 
     @classmethod
-    def up(cls, details: Optional[dict] = None) -> Self:
+    def up(cls, details: dict | None = None) -> Self:
         if details is None:
-            details = dict()
+            details = {}
 
         return cls(status=HealthStatus.UP, details=details)
 
@@ -49,9 +53,9 @@ class Health:
         ...
 
     @classmethod
-    def down(cls, details: Optional[Union[dict, Exception]] = None) -> Self:
+    def down(cls, details: dict | Exception | None = None) -> Self:
         if details is None:
-            details = dict()
+            details = {}
         elif isinstance(details, Exception):
             details = {"error": str(details)}
 
@@ -62,7 +66,7 @@ class HealthBackend(ABC):
     async def run(self) -> Health:
         try:
             health = await self.run_health_check()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             health = Health.down(exc)
 
         return health

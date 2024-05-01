@@ -5,6 +5,7 @@ import pytest
 from healthy import backends
 from healthy.compat import override
 
+
 class TestHealth:
     def test_up_without_args(self):
         got = backends.Health.up()
@@ -39,13 +40,15 @@ class TestHealth:
         assert got.status == backends.HealthStatus.DOWN
         assert got.details == {"error": given_message}
 
+
 @pytest.mark.asyncio
 class TestHealthBackend:
     async def test_run_handles_exceptions(self):
         class FaultHealthBackend(backends.HealthBackend):
             @override
             async def run_health_check(self) -> backends.Health:
-                raise RuntimeError("Something went wrong")
+                msg = "Something went wrong"
+                raise RuntimeError(msg)
 
         backend = FaultHealthBackend()
         got = await backend.run()
@@ -57,6 +60,7 @@ class TestHealthBackend:
 
     async def test_run_with_successful_check(self):
         expected = backends.Health.up({"message": "It's fine"})
+
         class ProxyHealthBackend(backends.HealthBackend):
             def __init__(self, health: backends.Health):
                 self.health = health
@@ -72,7 +76,7 @@ class TestHealthBackend:
         assert got == expected
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 class TestLivenessHealthBackend:
     async def test_run_health_check(self):
         backend = backends.LivenessHealthBackend()

@@ -1,14 +1,16 @@
 # SPDX-FileCopyrightText: 2024-present OLIST TINY TECNOLOGIA LTDA
 #
 # SPDX-License-Identifier: MIT
-from http import HTTPStatus
 from typing import ClassVar
 
 from django.http import HttpRequest, HttpResponse
 from django.views import View
 
+from .backends import LivenessHealthBackend
+from .responses import HealthResponse
 
-class PingView(View):
+
+class LivenessView(View):
     http_method_names: ClassVar = [
         "get",
         "head",
@@ -17,4 +19,6 @@ class PingView(View):
     ]
 
     async def get(self, request: HttpRequest) -> HttpResponse:  # noqa: ARG002
-        return HttpResponse("Pong", status=HTTPStatus.OK)
+        backend = LivenessHealthBackend()
+        health = await backend.run()
+        return HealthResponse(health)
