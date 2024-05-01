@@ -28,7 +28,7 @@ classifiers = [
 ]
 dependencies = [
   "django>=4.2",
-  "typing-extensions; python_version<'3.11'"
+  "typing-extensions; python_version<'3.12'"
 ]
 
 [project.urls]

@@ -1,4 +1,3 @@
-
 try:
     from typing import Self
 except ImportError:
@@ -16,6 +15,7 @@ except ImportError:
 
     class StrEnum(str, Enum):
         pass
+
 
 __all__ = [
     "Self",

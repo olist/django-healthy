@@ -3,10 +3,10 @@
 # SPDX-License-Identifier: MIT
 from django.urls import path
 
-from .views import PingView
+from .views import LivenessView
 
 app_name = "healthy"
 
 urlpatterns = [
-    path("ping/", PingView.as_view(), name="ping"),
+    path("ping/", LivenessView.as_view(), name="ping"),
 ]
