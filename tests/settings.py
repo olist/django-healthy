@@ -83,5 +83,11 @@ HEALTH_CHECK_BACKENDS = {
         "OPTIONS": {
             "alias": "default",
         },
-    }
+    },
+    "db": {
+        "BACKEND": "healthy.backends.DatabasePingBackend",
+        "OPTIONS": {
+            "alias": "default",
+        },
+    },
 }

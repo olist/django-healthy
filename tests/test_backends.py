@@ -1,7 +1,10 @@
 # SPDX-FileCopyrightText: 2024-present OLIST TINY TECNOLOGIA LTDA
 #
 # SPDX-License-Identifier: MIT
+from unittest import mock
+
 import pytest
+from django.db import connections
 from healthy import backends
 from healthy.compat import override
 
@@ -109,6 +112,37 @@ class TestCacheHealthCheck:
         backend = backends.CacheHealthBackend("dummy")
 
         got = await backend.run_health_check()
+
+        assert isinstance(got, backends.Health)
+        assert got.status == backends.HealthStatus.DOWN
+
+
+@pytest.mark.asyncio
+class TestDatabasePingBackend:
+    async def test_with_working_database(self):
+        backend = backends.DatabasePingBackend()
+
+        got = await backend.run_health_check()
+
+        assert isinstance(got, backends.Health)
+        assert got.status == backends.HealthStatus.UP
+
+    async def test_with_unreachable_database(self):
+        backend = backends.DatabasePingBackend()
+        connection = connections[backend.alias]
+
+        with mock.patch.object(connection, "is_usable", return_value=False):
+            got = await backend.run_health_check()
+
+        assert isinstance(got, backends.Health)
+        assert got.status == backends.HealthStatus.DOWN
+
+    async def test_with_database_error(self):
+        backend = backends.DatabasePingBackend()
+        connection = connections[backend.alias]
+
+        with mock.patch.object(connection, "is_usable", side_effect=RuntimeError):
+            got = await backend.run_health_check()
 
         assert isinstance(got, backends.Health)
         assert got.status == backends.HealthStatus.DOWN

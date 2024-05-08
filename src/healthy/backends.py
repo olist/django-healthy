@@ -8,7 +8,9 @@ from dataclasses import dataclass, field
 from time import perf_counter_ns
 from typing import Final, overload
 
+from asgiref.sync import sync_to_async
 from django.core.cache import caches
+from django.db import connections
 
 from .compat import Self, StrEnum, override
 
@@ -107,3 +109,18 @@ class CacheHealthBackend(HealthBackend):
             return Health.down(exc)
 
         return Health.up()
+
+
+class DatabasePingBackend(HealthBackend):
+    __slots__ = ("alias",)
+
+    def __init__(self, alias: str = "default"):
+        self.alias = alias
+
+    async def run_health_check(self) -> Health:
+        connection = connections[self.alias]
+        try:
+            usable = await sync_to_async(connection.is_usable)()
+            return Health.up() if usable else Health.down()
+        except Exception as exc:  # noqa: BLE001
+            return Health.down(exc)

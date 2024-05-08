@@ -27,6 +27,7 @@ classifiers = [
   "Framework :: Django :: 5.0",
 ]
 dependencies = [
+  "asgiref",
   "django>=4.2",
   "typing-extensions; python_version<'3.12'"
 ]
