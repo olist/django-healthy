@@ -79,7 +79,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 HEALTH_CHECK_BACKENDS = {
     "default_cache": {
-        "BACKEND": "healthy.backends.CacheBackend",
+        "BACKEND": "healthy.backends.CacheHealthBackend",
         "OPTIONS": {
             "alias": "default",
         },
