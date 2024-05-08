@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from time import perf_counter_ns
 from typing import Final, overload
 
 from django.core.cache import caches
@@ -61,10 +62,14 @@ class Health:
 
 class HealthBackend(ABC):
     async def run(self) -> Health:
+        start_time_ns = perf_counter_ns()
         try:
             health = await self.run_health_check()
         except Exception as exc:  # noqa: BLE001
             health = Health.down(exc)
+
+        end_time_ns = perf_counter_ns()
+        health.details["time_ns"] = end_time_ns - start_time_ns
 
         return health
 
