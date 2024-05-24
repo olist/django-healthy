@@ -67,6 +67,12 @@ CACHES = {
     },
 }
 
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.InMemoryStorage",
+    },
+}
+
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
@@ -86,6 +92,12 @@ HEALTH_CHECK_BACKENDS = {
     },
     "db": {
         "BACKEND": "healthy.backends.DatabasePingBackend",
+        "OPTIONS": {
+            "alias": "default",
+        },
+    },
+    "default_storage": {
+        "BACKEND": "healthy.backends.StorageBackend",
         "OPTIONS": {
             "alias": "default",
         },
