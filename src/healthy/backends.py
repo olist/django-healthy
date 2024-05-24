@@ -5,11 +5,13 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from io import StringIO
 from time import perf_counter_ns
 from typing import Final, overload
 
 from asgiref.sync import sync_to_async
 from django.core.cache import caches
+from django.core.files.storage import Storage, storages
 from django.db import connections
 
 from .compat import Self, StrEnum, override
@@ -124,3 +126,31 @@ class DatabasePingBackend(HealthBackend):
             return Health.up() if usable else Health.down()
         except Exception as exc:  # noqa: BLE001
             return Health.down(exc)
+
+
+class StorageBackend(HealthBackend):
+    __slots__ = ("alias",)
+
+    def __init__(self, alias: str = "default"):
+        self.alias = alias
+
+    async def run_health_check(self) -> Health:
+        storage: Storage = storages[self.alias]
+        content: str = "This is a django-healthy test file."
+
+        try:
+            filename = storage.get_alternative_name("healthy_test_file", ".txt")
+            await sync_to_async(storage.save)(filename, StringIO(content))
+
+            exists = await sync_to_async(storage.exists)(filename)
+            if not exists:
+                return Health.down({"reason": "Missing file"})
+
+            await sync_to_async(storage.delete)(filename)
+            exists = await sync_to_async(storage.exists)(filename)
+            if exists:
+                return Health.down({"reason": "Could not delete file"})
+        except Exception as exc:  # noqa: BLE001
+            return Health.down(exc)
+        else:
+            return Health.up()

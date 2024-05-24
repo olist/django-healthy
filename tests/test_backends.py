@@ -4,6 +4,7 @@
 from unittest import mock
 
 import pytest
+from django.core.files.storage import storages
 from django.db import connections
 from healthy import backends
 from healthy.compat import override
@@ -142,6 +143,57 @@ class TestDatabasePingBackend:
         connection = connections[backend.alias]
 
         with mock.patch.object(connection, "is_usable", side_effect=RuntimeError):
+            got = await backend.run_health_check()
+
+        assert isinstance(got, backends.Health)
+        assert got.status == backends.HealthStatus.DOWN
+
+
+@pytest.mark.asyncio
+class TestStorageBackend:
+    async def test_with_working_storage(self):
+        backend = backends.StorageBackend()
+
+        got = await backend.run_health_check()
+
+        assert isinstance(got, backends.Health)
+        assert got.status == backends.HealthStatus.UP
+
+    async def test_with_save_error(self):
+        backend = backends.StorageBackend()
+        storage = storages[backend.alias]
+
+        with mock.patch.object(storage, "save", side_effect=Exception):
+            got = await backend.run_health_check()
+
+        assert isinstance(got, backends.Health)
+        assert got.status == backends.HealthStatus.DOWN
+
+    async def test_with_noop_save(self):
+        backend = backends.StorageBackend()
+        storage = storages[backend.alias]
+
+        with mock.patch.object(storage, "save"):
+            got = await backend.run_health_check()
+
+        assert isinstance(got, backends.Health)
+        assert got.status == backends.HealthStatus.DOWN
+
+    async def test_with_delete_error(self):
+        backend = backends.StorageBackend()
+        storage = storages[backend.alias]
+
+        with mock.patch.object(storage, "delete", side_effect=Exception):
+            got = await backend.run_health_check()
+
+        assert isinstance(got, backends.Health)
+        assert got.status == backends.HealthStatus.DOWN
+
+    async def test_with_noop_delete(self):
+        backend = backends.StorageBackend()
+        storage = storages[backend.alias]
+
+        with mock.patch.object(storage, "delete"):
             got = await backend.run_health_check()
 
         assert isinstance(got, backends.Health)
