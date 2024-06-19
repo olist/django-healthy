@@ -6,6 +6,8 @@ from http import HTTPStatus
 import pytest
 from django.urls import reverse
 
+pytestmark = pytest.mark.django_db
+
 
 class TestLivenessView:
     def test_get_ping(self, client):

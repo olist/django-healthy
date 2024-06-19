@@ -122,6 +122,7 @@ class DatabasePingBackend(HealthBackend):
     async def run_health_check(self) -> Health:
         connection = connections[self.alias]
         try:
+            await sync_to_async(connection.ensure_connection)()
             usable = await sync_to_async(connection.is_usable)()
             return Health.up() if usable else Health.down()
         except Exception as exc:  # noqa: BLE001
