@@ -120,6 +120,7 @@ class TestCacheHealthCheck:
 
 @pytest.mark.asyncio
 class TestDatabasePingBackend:
+    @pytest.mark.django_db
     async def test_with_working_database(self):
         backend = backends.DatabasePingBackend()
 
