@@ -93,6 +93,19 @@ cov = [
 [[tool.hatch.envs.all.matrix]]
 python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
+[tool.hatch.envs.style]
+detached = true
+dependencies = ["deptry", "pre-commit"]
+
+[tool.hatch.envs.style.scripts]
+deps = "deptry ."
+lint = "pre-commit run -a -v"
+update = "pre-commit autoupdate"
+check = [
+  "deps",
+  "lint",
+]
+
 [tool.hatch.envs.tests.overrides]
 matrix.django.dependencies = [
     { value = "django>=4.2,<5.0", if = ["4.2"] },
@@ -117,6 +130,7 @@ check = "mypy --install-types --non-interactive {args:src/healthy tests}"
 
 [tool.hatch.envs.hatch-static-analysis]
 config-path = "ruff_defaults.toml"
+dependencies = ["ruff==0.6.2"]
 
 [tool.ruff]
 extend = "ruff_defaults.toml"
