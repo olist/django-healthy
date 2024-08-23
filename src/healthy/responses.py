@@ -11,5 +11,5 @@ from .backends import Health, HealthStatus
 
 class HealthResponse(JsonResponse):
     def __init__(self, health: Health):
-        status = HTTPStatus.OK if health.status == HealthStatus.HEALTHY else HTTPStatus.INTERNAL_SERVER_ERROR
+        status = HTTPStatus.OK if health.status == HealthStatus.HEALTHY else HTTPStatus.SERVICE_UNAVAILABLE
         super().__init__(data=asdict(health), status=status)

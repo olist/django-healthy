@@ -20,5 +20,5 @@ class TestHealthResponse:
         health = Health.unhealthy({"message": "Something went wrong"})
         response = HealthResponse(health)
 
-        assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+        assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
         assert json.loads(response.content) == {"status": "unhealthy", "details": {"message": "Something went wrong"}}
