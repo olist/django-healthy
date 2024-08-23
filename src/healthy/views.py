@@ -40,9 +40,9 @@ class HealthView(View):
         indicators = await asyncio.gather(*tasks)
         details = {alias: asdict(indicator) for alias, indicator in zip(health_checks, indicators)}
 
-        if any(health.status == HealthStatus.DOWN for health in indicators):
-            health = Health.down(details)
+        if any(health.status == HealthStatus.UNHEALTHY for health in indicators):
+            health = Health.unhealthy(details)
         else:
-            health = Health.up(details)
+            health = Health.healthy(details)
 
         return HealthResponse(health)

@@ -9,16 +9,16 @@ from healthy.responses import HealthResponse
 
 
 class TestHealthResponse:
-    def test_with_up_health(self):
-        health = Health.up({"message": "It's fine"})
+    def test_with_healthy_health(self):
+        health = Health.healthy({"message": "It's fine"})
         response = HealthResponse(health)
 
         assert response.status_code == HTTPStatus.OK
-        assert json.loads(response.content) == {"status": "up", "details": {"message": "It's fine"}}
+        assert json.loads(response.content) == {"status": "healthy", "details": {"message": "It's fine"}}
 
-    def test_with_down_health(self):
-        health = Health.down({"message": "Something went wrong"})
+    def test_with_unhealthy_health(self):
+        health = Health.unhealthy({"message": "Something went wrong"})
         response = HealthResponse(health)
 
         assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
-        assert json.loads(response.content) == {"status": "down", "details": {"message": "Something went wrong"}}
+        assert json.loads(response.content) == {"status": "unhealthy", "details": {"message": "Something went wrong"}}

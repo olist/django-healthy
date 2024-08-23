@@ -18,8 +18,9 @@ from .compat import Self, StrEnum, override
 
 
 class HealthStatus(StrEnum):
-    UP = "up"
-    DOWN = "down"
+    UNHEALTHY = "unhealthy"
+    DEGRADED = "degraded"
+    HEALTHY = "healthy"
 
 
 @dataclass
@@ -29,39 +30,39 @@ class Health:
 
     @overload
     @classmethod
-    def up(cls) -> Self: ...
+    def healthy(cls) -> Self: ...
 
     @overload
     @classmethod
-    def up(cls, details: dict) -> Self: ...
+    def healthy(cls, details: dict) -> Self: ...
 
     @classmethod
-    def up(cls, details: dict | None = None) -> Self:
+    def healthy(cls, details: dict | None = None) -> Self:
         if details is None:
             details = {}
 
-        return cls(status=HealthStatus.UP, details=details)
+        return cls(status=HealthStatus.HEALTHY, details=details)
 
     @overload
     @classmethod
-    def down(cls) -> Self: ...
+    def unhealthy(cls) -> Self: ...
 
     @overload
     @classmethod
-    def down(cls, details: Exception) -> Self: ...
+    def unhealthy(cls, details: Exception) -> Self: ...
 
     @overload
     @classmethod
-    def down(cls, details: dict) -> Self: ...
+    def unhealthy(cls, details: dict) -> Self: ...
 
     @classmethod
-    def down(cls, details: dict | Exception | None = None) -> Self:
+    def unhealthy(cls, details: dict | Exception | None = None) -> Self:
         if details is None:
             details = {}
         elif isinstance(details, Exception):
             details = {"error": str(details)}
 
-        return cls(status=HealthStatus.DOWN, details=details)
+        return cls(status=HealthStatus.UNHEALTHY, details=details)
 
 
 class HealthBackend(ABC):
@@ -70,7 +71,7 @@ class HealthBackend(ABC):
         try:
             health = await self.run_health_check()
         except Exception as exc:  # noqa: BLE001
-            health = Health.down(exc)
+            health = Health.unhealthy(exc)
 
         end_time_ns = perf_counter_ns()
         health.details["time_ns"] = end_time_ns - start_time_ns
@@ -85,7 +86,7 @@ class HealthBackend(ABC):
 class LivenessHealthBackend(HealthBackend):
     @override
     async def run_health_check(self) -> Health:
-        return Health.up()
+        return Health.healthy()
 
 
 CACHE_VALUE: Final[str] = "healthy_test_value"
@@ -106,11 +107,11 @@ class CacheHealthBackend(HealthBackend):
             await cache.aset(self.key, given)
             got = await cache.aget(self.key)
             if got != given:
-                return Health.down({"message": "Got unexpected value."})
+                return Health.unhealthy({"message": "Got unexpected value."})
         except Exception as exc:  # noqa: BLE001
-            return Health.down(exc)
+            return Health.unhealthy(exc)
 
-        return Health.up()
+        return Health.healthy()
 
 
 class DatabasePingBackend(HealthBackend):
@@ -124,9 +125,9 @@ class DatabasePingBackend(HealthBackend):
         try:
             await sync_to_async(connection.ensure_connection)()
             usable = await sync_to_async(connection.is_usable)()
-            return Health.up() if usable else Health.down()
+            return Health.healthy() if usable else Health.unhealthy()
         except Exception as exc:  # noqa: BLE001
-            return Health.down(exc)
+            return Health.unhealthy(exc)
 
 
 class StorageBackend(HealthBackend):
@@ -145,13 +146,13 @@ class StorageBackend(HealthBackend):
 
             exists = await sync_to_async(storage.exists)(filename)
             if not exists:
-                return Health.down({"reason": "Missing file"})
+                return Health.unhealthy({"reason": "Missing file"})
 
             await sync_to_async(storage.delete)(filename)
             exists = await sync_to_async(storage.exists)(filename)
             if exists:
-                return Health.down({"reason": "Could not delete file"})
+                return Health.unhealthy({"reason": "Could not delete file"})
         except Exception as exc:  # noqa: BLE001
-            return Health.down(exc)
+            return Health.unhealthy(exc)
         else:
-            return Health.up()
+            return Health.healthy()
