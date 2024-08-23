@@ -5,11 +5,13 @@
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).absolute()
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "12345healthy67890"
+SECRET_KEY = "django-insecure-txy9b_=khny3ax$up%i&)&axs!inx7dy1b0nu26g!q-z$b)f-f"  # noqa: S105
 
 DEBUG = True
+
+ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     "django.contrib.auth",
@@ -30,7 +32,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "tests.urls"
+ROOT_URLCONF = "testproj.urls"
 
 TEMPLATES = [
     {
@@ -48,6 +50,8 @@ TEMPLATES = [
     },
 ]
 
+WSGI_APPLICATION = "testproj.wsgi.application"
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -62,16 +66,31 @@ CACHES = {
     "dummy": {
         "BACKEND": "django.core.cache.backends.dummy.DummyCache",
     },
-    "broken": {
-        "BACKEND": "tests.cache.BrokenCache",
-    },
 }
 
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.InMemoryStorage",
     },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
 }
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+]
 
 
 LANGUAGE_CODE = "en-us"
@@ -83,8 +102,9 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Application health
 HEALTH_CHECK_BACKENDS = {
-    "default_cache": {
+    "cache": {
         "BACKEND": "healthy.backends.CacheHealthBackend",
         "OPTIONS": {
             "alias": "default",
@@ -96,7 +116,7 @@ HEALTH_CHECK_BACKENDS = {
             "alias": "default",
         },
     },
-    "default_storage": {
+    "storage": {
         "BACKEND": "healthy.backends.StorageBackend",
         "OPTIONS": {
             "alias": "default",

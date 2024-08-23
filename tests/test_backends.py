@@ -4,6 +4,7 @@
 from unittest import mock
 
 import pytest
+from django.core.cache import caches
 from django.core.files.storage import storages
 from django.db import connections
 
@@ -103,9 +104,11 @@ class TestCacheHealthCheck:
         assert got.status == backends.HealthStatus.UP
 
     async def test_with_broken_cache(self):
-        backend = backends.CacheHealthBackend("broken")
+        backend = backends.CacheHealthBackend()
+        cache = caches[backend.alias]
 
-        got = await backend.run_health_check()
+        with mock.patch.object(cache, "aset", side_effect=RuntimeError):
+            got = await backend.run_health_check()
 
         assert isinstance(got, backends.Health)
         assert got.status == backends.HealthStatus.DOWN
