@@ -13,37 +13,37 @@ from healthy.compat import override
 
 
 class TestHealth:
-    def test_up_without_args(self):
-        got = backends.Health.up()
+    def test_healthy_without_args(self):
+        got = backends.Health.healthy()
 
-        assert got.status == backends.HealthStatus.UP
+        assert got.status == backends.HealthStatus.HEALTHY
         assert got.details == {}
 
-    def test_up_with_mapping_details(self):
+    def test_healthy_with_mapping_details(self):
         given_details = {"message": "It's fine!"}
-        got = backends.Health.up(given_details)
+        got = backends.Health.healthy(given_details)
 
-        assert got.status == backends.HealthStatus.UP
+        assert got.status == backends.HealthStatus.HEALTHY
         assert got.details == given_details
 
-    def test_down_without_args(self):
-        got = backends.Health.down()
+    def test_unhealthy_without_args(self):
+        got = backends.Health.unhealthy()
 
-        assert got.status == backends.HealthStatus.DOWN
+        assert got.status == backends.HealthStatus.UNHEALTHY
         assert got.details == {}
 
-    def test_down_with_mapping_details(self):
+    def test_unhealthy_with_mapping_details(self):
         given_details = {"message": "Something went wrong"}
-        got = backends.Health.down(given_details)
+        got = backends.Health.unhealthy(given_details)
 
-        assert got.status == backends.HealthStatus.DOWN
+        assert got.status == backends.HealthStatus.UNHEALTHY
         assert got.details == given_details
 
-    def test_down_with_exception_details(self):
+    def test_unhealthy_with_exception_details(self):
         given_message = "Something went wrong"
-        got = backends.Health.down(RuntimeError(given_message))
+        got = backends.Health.unhealthy(RuntimeError(given_message))
 
-        assert got.status == backends.HealthStatus.DOWN
+        assert got.status == backends.HealthStatus.UNHEALTHY
         assert got.details == {"error": given_message}
 
 
@@ -60,12 +60,12 @@ class TestHealthBackend:
         got = await backend.run()
 
         assert isinstance(got, backends.Health)
-        assert got.status == backends.HealthStatus.DOWN
+        assert got.status == backends.HealthStatus.UNHEALTHY
         assert "error" in got.details
         assert got.details["error"] == "Something went wrong"
 
     async def test_run_with_successful_check(self):
-        expected = backends.Health.up({"message": "It's fine"})
+        expected = backends.Health.healthy({"message": "It's fine"})
 
         class ProxyHealthBackend(backends.HealthBackend):
             def __init__(self, health: backends.Health):
@@ -90,7 +90,7 @@ class TestLivenessHealthBackend:
         got = await backend.run_health_check()
 
         assert isinstance(got, backends.Health)
-        assert got.status == backends.HealthStatus.UP
+        assert got.status == backends.HealthStatus.HEALTHY
 
 
 @pytest.mark.asyncio
@@ -101,7 +101,7 @@ class TestCacheHealthCheck:
         got = await backend.run_health_check()
 
         assert isinstance(got, backends.Health)
-        assert got.status == backends.HealthStatus.UP
+        assert got.status == backends.HealthStatus.HEALTHY
 
     async def test_with_broken_cache(self):
         backend = backends.CacheHealthBackend()
@@ -111,7 +111,7 @@ class TestCacheHealthCheck:
             got = await backend.run_health_check()
 
         assert isinstance(got, backends.Health)
-        assert got.status == backends.HealthStatus.DOWN
+        assert got.status == backends.HealthStatus.UNHEALTHY
 
     async def test_with_invalid_value(self):
         backend = backends.CacheHealthBackend("dummy")
@@ -119,7 +119,7 @@ class TestCacheHealthCheck:
         got = await backend.run_health_check()
 
         assert isinstance(got, backends.Health)
-        assert got.status == backends.HealthStatus.DOWN
+        assert got.status == backends.HealthStatus.UNHEALTHY
 
 
 @pytest.mark.asyncio
@@ -131,7 +131,7 @@ class TestDatabasePingBackend:
         got = await backend.run_health_check()
 
         assert isinstance(got, backends.Health)
-        assert got.status == backends.HealthStatus.UP
+        assert got.status == backends.HealthStatus.HEALTHY
 
     async def test_with_unreachable_database(self):
         backend = backends.DatabasePingBackend()
@@ -141,7 +141,7 @@ class TestDatabasePingBackend:
             got = await backend.run_health_check()
 
         assert isinstance(got, backends.Health)
-        assert got.status == backends.HealthStatus.DOWN
+        assert got.status == backends.HealthStatus.UNHEALTHY
 
     async def test_with_database_error(self):
         backend = backends.DatabasePingBackend()
@@ -151,7 +151,7 @@ class TestDatabasePingBackend:
             got = await backend.run_health_check()
 
         assert isinstance(got, backends.Health)
-        assert got.status == backends.HealthStatus.DOWN
+        assert got.status == backends.HealthStatus.UNHEALTHY
 
 
 @pytest.mark.asyncio
@@ -162,7 +162,7 @@ class TestStorageBackend:
         got = await backend.run_health_check()
 
         assert isinstance(got, backends.Health)
-        assert got.status == backends.HealthStatus.UP
+        assert got.status == backends.HealthStatus.HEALTHY
 
     async def test_with_save_error(self):
         backend = backends.StorageBackend()
@@ -172,7 +172,7 @@ class TestStorageBackend:
             got = await backend.run_health_check()
 
         assert isinstance(got, backends.Health)
-        assert got.status == backends.HealthStatus.DOWN
+        assert got.status == backends.HealthStatus.UNHEALTHY
 
     async def test_with_noop_save(self):
         backend = backends.StorageBackend()
@@ -182,7 +182,7 @@ class TestStorageBackend:
             got = await backend.run_health_check()
 
         assert isinstance(got, backends.Health)
-        assert got.status == backends.HealthStatus.DOWN
+        assert got.status == backends.HealthStatus.UNHEALTHY
 
     async def test_with_delete_error(self):
         backend = backends.StorageBackend()
@@ -192,7 +192,7 @@ class TestStorageBackend:
             got = await backend.run_health_check()
 
         assert isinstance(got, backends.Health)
-        assert got.status == backends.HealthStatus.DOWN
+        assert got.status == backends.HealthStatus.UNHEALTHY
 
     async def test_with_noop_delete(self):
         backend = backends.StorageBackend()
@@ -202,4 +202,4 @@ class TestStorageBackend:
             got = await backend.run_health_check()
 
         assert isinstance(got, backends.Health)
-        assert got.status == backends.HealthStatus.DOWN
+        assert got.status == backends.HealthStatus.UNHEALTHY
